@@ -9,7 +9,8 @@ public class TestUser {
         System.out.println(u.getUID());
         System.out.println(u.getGroups());
         System.out.println(u.getUserName());
-        //System.out.println(u.getDir());
-        //System.out.println(u.getShell());
+        System.out.println(u.getGecos());
+        System.out.println(u.getDir());
+        System.out.println(u.getShell());
     }
 }
