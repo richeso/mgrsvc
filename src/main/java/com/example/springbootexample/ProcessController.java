@@ -1,9 +1,11 @@
 package com.example.springbootexample;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.Map;
 /*
@@ -33,8 +35,16 @@ public class ProcessController {
             value = "/api/process",
             method = RequestMethod.POST,
             consumes="application/json")
-    public void process(@RequestBody Map<String, Object> payload)
+    public ResponseEntity<String> process(@RequestBody Map<String, Object> payload)
             throws Exception {
         System.out.println(payload);
+        String name = (String) payload.get("name");
+        String password = (String) payload.get("password");
+        try {
+            return ResponseEntity.ok(TestUser.getUserInfo(name,password));
+
+        } catch (Exception e) {
+            return ResponseEntity.ok("error encountered: "+e.getMessage());
+        }
     }
 }

@@ -24,6 +24,6 @@ public class PingIntegrationTest {
     String response = mvc
         .perform(get("/api/ping"))
         .andReturn().getResponse().getContentAsString();
-    assertEquals("userid=501 username=cheso", response);
+    assertEquals("pong", response);
   }
 }

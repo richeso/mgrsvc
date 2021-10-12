@@ -1,5 +1,6 @@
 #!/bin/sh
-
+useradd -p $(openssl passwd -1 "chesopass") "cheso"
+useradd -p $(openssl passwd -1 "davidpass") "david"
 echo "192.168.8.54 demo.mapr.com demo" >> /etc/hosts
 /opt/mapr/server/configure.sh -N demo.mapr.com -c -C 192.168.8.54:7222
 ###cp /app/resources/config/mapr-clusters.conf /opt/mapr/conf/mapr-clusters.conf

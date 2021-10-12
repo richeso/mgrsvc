@@ -13,11 +13,7 @@ public class PingRestController {
   @RequestMapping(method = RequestMethod.GET, path = "/api/ping")
   public ResponseEntity<String> getPing() {
     try {
-      UnixUser u = new PAM("sshd").authenticate("cheso", "weallscream");
-      System.out.println(u.getUID());
-      System.out.println(u.getGroups());
-      System.out.println(u.getUserName());
-      return ResponseEntity.ok("userid=" + u.getUID() + " username=" + u.getUserName());
+      return ResponseEntity.ok("pong");
     } catch (Exception e) {
       return ResponseEntity.ok(e.getMessage());
     }
