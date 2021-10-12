@@ -17,6 +17,16 @@
 
   <properties>
     <java.version>1.8</java.version>
+    <jib-maven-plugin.version>3.1.4</jib-maven-plugin.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+    <start-class>com.example.springbootexample.SpringBootExampleApplication</start-class>
+    <argLine>-Djava.security.egd=file:/dev/./urandom -Xmx256m</argLine>
+    <m2e.apt.activation>jdt_apt</m2e.apt.activation>
+    <run.addResources>false</run.addResources>
   </properties>
 
   <dependencies>
@@ -53,7 +63,69 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
+      <plugin>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-maven-plugin</artifactId>
+      </plugin>
     </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>com.google.cloud.tools</groupId>
+          <artifactId>jib-maven-plugin</artifactId>
+          <version>${jib-maven-plugin.version}</version>
+          <configuration>
+            <from>
+              <image>maprtech/pacc:6.0.1_5.0.0_ubuntu16</image>
+            </from>
+            <to>
+              <image>mgrsvc:latest</image>
+            </to>
+            <container>
+              <entrypoint>
+                <shell>bash</shell>
+                <option>-c</option>
+                <arg>/entrypoint.sh</arg>
+              </entrypoint>
+              <ports>
+                <port>8080</port>
+              </ports>
+              <environment>
+                <SPRING_OUTPUT_ANSI_ENABLED>ALWAYS</SPRING_OUTPUT_ANSI_ENABLED>
+              </environment>
+              <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
+              <expandClasspathDependencies>true</expandClasspathDependencies>
+            </container>
+            <extraDirectories>
+              <paths>src/main/docker/jib</paths>
+              <permissions>
+                <permission>
+                  <file>/entrypoint.sh</file>
+                  <mode>755</mode>
+                </permission>
+              </permissions>
+            </extraDirectories>
+          </configuration>
+        </plugin>
+        <plugin>
+          <artifactId>maven-clean-plugin</artifactId>
+          <version>${maven-clean-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>${maven-site-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-eclipse-plugin</artifactId>
+          <version>${maven-eclipse-plugin.version}</version>
+          <configuration>
+            <downloadSources>true</downloadSources>
+            <downloadJavadocs>true</downloadJavadocs>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
 
 </project>
