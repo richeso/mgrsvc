@@ -1,11 +1,11 @@
-package com.example.springbootexample;
+package com.mapr.mgrsvc;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.Map;
 /*
@@ -30,9 +30,9 @@ in my Dockerfile and do
 Source: https://github.com/arcenik/docker-authfromhost/blob/63df5e63fcb92cd5fa26755e144e53a7678e803f/debian-buster-slim/Dockerfile#L13
  */
 @RestController
-public class ProcessController {
+public class PamUserController {
     @RequestMapping(
-            value = "/api/process",
+            value = "/api/pamuser",
             method = RequestMethod.POST,
             consumes="application/json")
     public ResponseEntity<String> process(@RequestBody Map<String, Object> payload)
@@ -41,7 +41,10 @@ public class ProcessController {
         String name = (String) payload.get("name");
         String password = (String) payload.get("password");
         try {
-            return ResponseEntity.ok(TestUser.getUserInfo(name,password));
+            Map<String,Object> userData = PamUser.getUserData(name,password);
+            ObjectMapper objectMapper = new ObjectMapper();
+            String userDataString = objectMapper.writeValueAsString(userData);
+            return ResponseEntity.ok(userDataString);
 
         } catch (Exception e) {
             return ResponseEntity.ok("error encountered: "+e.getMessage());

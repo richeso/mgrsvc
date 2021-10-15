@@ -1,4 +1,4 @@
-package com.example.springbootexample;
+package com.mapr.mgrsvc;
 
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.UnixUser;

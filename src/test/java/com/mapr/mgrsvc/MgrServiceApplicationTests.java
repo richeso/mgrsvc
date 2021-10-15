@@ -1,10 +1,10 @@
-package com.example.springbootexample;
+package com.mapr.mgrsvc;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SpringBootExampleApplicationTests {
+class MgrServiceApplicationTests {
 
   @Test
     void contextLoads() {
