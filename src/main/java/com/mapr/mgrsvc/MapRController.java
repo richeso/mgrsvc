@@ -6,10 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -31,6 +28,12 @@ public class MapRController {
 
     @Value("${api.host.baseurl}")
     private String apiHost;
+
+    @Value("${server.port}")
+    private String serverPort;
+
+    @Value("${local.host.baseurl}")
+    private String localhost;
 
     @RequestMapping(value = "/api/c8vol", method = RequestMethod.POST,consumes="application/json")
     public ResponseEntity<String> c8vol(@RequestBody Map<String, Object> payload) throws Exception {
@@ -109,12 +112,35 @@ public class MapRController {
             // make a request
             ResponseEntity<Map> response = restTemplate.exchange(builder.toUriString(),
                     HttpMethod.POST, request, Map.class);
-
             ObjectMapper objectMapper = new ObjectMapper();
             String responseString = objectMapper.writeValueAsString(response.getBody());
             return ResponseEntity.ok(responseString);
         } catch (Exception e) {
             //e.printStackTrace();
+            log.debug("Error Encountered: "+e.getMessage());
+            return ResponseEntity.ok("error encountered: "+e.getMessage());
+        }
+    }
+
+    @GetMapping("/api/pamauthenticate")
+    public ResponseEntity<String> pamauthenticate(@RequestParam Map<String,String> payload) {
+        System.out.println(payload);
+        String userid = (String) payload.get("userid");
+        String password = (String) payload.get("password");
+        try {
+            HttpHeaders headers = createAuthHeader(userid, password);
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+            HttpEntity request = new HttpEntity(headers);
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(localhost + ":" + serverPort + "/api/paminfo")
+                    .queryParam("userid", userid)
+                    .queryParam("password", password);
+            // make a request
+            ResponseEntity<Map> response = restTemplate.exchange(builder.toUriString(),
+                    HttpMethod.GET, request, Map.class);
+            ObjectMapper objectMapper = new ObjectMapper();
+            String responseString = objectMapper.writeValueAsString(response.getBody());
+            return ResponseEntity.ok(responseString);
+        } catch (Exception e) {
             log.debug("Error Encountered: "+e.getMessage());
             return ResponseEntity.ok("error encountered: "+e.getMessage());
         }

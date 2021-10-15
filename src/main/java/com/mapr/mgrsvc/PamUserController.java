@@ -1,11 +1,9 @@
 package com.mapr.mgrsvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 /*
@@ -31,23 +29,31 @@ Source: https://github.com/arcenik/docker-authfromhost/blob/63df5e63fcb92cd5fa26
  */
 @RestController
 public class PamUserController {
-    @RequestMapping(
-            value = "/api/pamuser",
-            method = RequestMethod.POST,
-            consumes="application/json")
-    public ResponseEntity<String> process(@RequestBody Map<String, Object> payload)
-            throws Exception {
+    @RequestMapping(value = "/api/pamuser",method = RequestMethod.POST,consumes="application/json")
+    public ResponseEntity<String> process(@RequestBody Map<String, Object> payload) throws Exception {
         System.out.println(payload);
-        String name = (String) payload.get("name");
+        String userid = (String) payload.get("userid");
         String password = (String) payload.get("password");
+        return authenticate(userid, password);
+    }
+    @GetMapping("/api/paminfo")
+    public ResponseEntity<String> paminfo(@RequestParam Map<String,String> payload) {
+        System.out.println(payload);
+        String userid = (String) payload.get("userid");
+        String password = (String) payload.get("password");
+        return authenticate(userid, password);
+    }
+
+    @NotNull
+    private ResponseEntity<String> authenticate(String userid, String password) {
         try {
-            Map<String,Object> userData = PamUser.getUserData(name,password);
+            Map<String,Object> userData = PamUser.getUserData(userid, password);
             ObjectMapper objectMapper = new ObjectMapper();
             String userDataString = objectMapper.writeValueAsString(userData);
             return ResponseEntity.ok(userDataString);
-
         } catch (Exception e) {
             return ResponseEntity.ok("error encountered: "+e.getMessage());
         }
     }
+
 }
