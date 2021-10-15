@@ -1,24 +1,16 @@
 package com.mapr.mgrsvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.HttpClientConnection;
-import org.apache.http.client.HttpClient;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.SSLContextBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Base64;
@@ -32,6 +24,7 @@ public class MapRController {
 
     private final String URI_VOLUME_INFO = "/volume/info";
     private final String URI_VOLUME_CREATE = "/volume/create";
+    private final String URI_VOLUME_REMOVE = "/volume/remove";
     private static final Logger log = LoggerFactory.getLogger(MapRController.class);
     @Autowired
     RestTemplate restTemplate;
@@ -44,7 +37,6 @@ public class MapRController {
         log.debug(String.valueOf(payload));
         String username = (String) payload.get("userid");
         String password = (String) payload.get("password");
-        String requestType = (String) payload.get("requestType");
         String volume = (String) payload.get("volume");
         String volumePath = (String) payload.get("path");
         //http[s]://<host>:<port>/rest/volume/info?<parameters>
@@ -77,6 +69,31 @@ public class MapRController {
         }
     }
 
+    @RequestMapping(value = "/api/deletevol", method = RequestMethod.POST,consumes="application/json")
+    public ResponseEntity<String> deletevol(@RequestBody Map<String, Object> payload) throws Exception {
+        log.debug(String.valueOf(payload));
+        String username = (String) payload.get("userid");
+        String password = (String) payload.get("password");
+        String volume = (String) payload.get("volume");
+        try {
+            HttpHeaders headers = createAuthHeader(username, password);
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+            HttpEntity request = new HttpEntity(headers);
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost+URI_VOLUME_REMOVE)
+                    .queryParam("name", volume);
+            // make a request
+            ResponseEntity<Map> response = restTemplate.exchange(builder.toUriString(),
+                    HttpMethod.POST, request, Map.class);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            String responseString = objectMapper.writeValueAsString(response.getBody());
+            return ResponseEntity.ok(responseString);
+        } catch (Exception e) {
+            //e.printStackTrace();
+            log.debug("Error Encountered: "+e.getMessage());
+            return ResponseEntity.ok("error encountered: "+e.getMessage());
+        }
+    }
     @RequestMapping(value = "/api/volinfo", method = RequestMethod.POST,consumes="application/json")
     public ResponseEntity<String> volinfo(@RequestBody Map<String, Object> payload) throws Exception {
         log.debug(String.valueOf(payload));
@@ -102,6 +119,7 @@ public class MapRController {
             return ResponseEntity.ok("error encountered: "+e.getMessage());
         }
     }
+
     private HttpHeaders createAuthHeader(String username, String password) {
         // create auth credentials
         String authStr = username+":"+password;
