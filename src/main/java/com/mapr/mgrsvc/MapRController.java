@@ -35,8 +35,10 @@ public class MapRController {
     @Value("${local.host.baseurl}")
     private String localhost;
 
-    @RequestMapping(value = "/api/c8vol", method = RequestMethod.POST,consumes="application/json")
-    public ResponseEntity<String> c8vol(@RequestBody Map<String, Object> payload) throws Exception {
+    //@RequestMapping(value = "/api/c8vol", method = RequestMethod.POST,consumes="application/json")
+    //public ResponseEntity<String> c8vol(@RequestBody Map<String, Object> payload) throws Exception {
+    @GetMapping("/api/c8vol")
+    public ResponseEntity<String> c8vol(@RequestParam Map<String,String> payload) {
         log.debug(String.valueOf(payload));
         String username = (String) payload.get("userid");
         String password = (String) payload.get("password");
@@ -72,8 +74,11 @@ public class MapRController {
         }
     }
 
-    @RequestMapping(value = "/api/deletevol", method = RequestMethod.POST,consumes="application/json")
-    public ResponseEntity<String> deletevol(@RequestBody Map<String, Object> payload) throws Exception {
+    //@RequestMapping(value = "/api/deletevol", method = RequestMethod.POST,consumes="application/json")
+    //public ResponseEntity<String> deletevol(@RequestBody Map<String, Object> payload) throws Exception {
+
+    @GetMapping("/api/deletevol")
+    public ResponseEntity<String> deletevol(@RequestParam Map<String,String> payload) {
         log.debug(String.valueOf(payload));
         String username = (String) payload.get("userid");
         String password = (String) payload.get("password");
@@ -97,8 +102,10 @@ public class MapRController {
             return ResponseEntity.ok("error encountered: "+e.getMessage());
         }
     }
-    @RequestMapping(value = "/api/volinfo", method = RequestMethod.POST,consumes="application/json")
-    public ResponseEntity<String> volinfo(@RequestBody Map<String, Object> payload) throws Exception {
+    //@RequestMapping(value = "/api/volinfo", method = RequestMethod.POST,consumes="application/json")
+    //public ResponseEntity<String> volinfo(@RequestBody Map<String, Object> payload) throws Exception {
+    @GetMapping("/api/volinfo")
+    public ResponseEntity<String> volinfo(@RequestParam Map<String,String> payload) {
         log.debug(String.valueOf(payload));
         String username = (String) payload.get("userid");
         String password = (String) payload.get("password");
