@@ -1,0 +1,1 @@
+nohup java -jar mgrsvc-1.0.jar &
