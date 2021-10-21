@@ -37,7 +37,9 @@ public class MapRController {
 
     //@RequestMapping(value = "/api/c8vol", method = RequestMethod.POST,consumes="application/json")
     //public ResponseEntity<String> c8vol(@RequestBody Map<String, Object> payload) throws Exception {
-    @GetMapping("/api/c8vol")
+
+    @RequestMapping(value = "/api/c8vol",method = RequestMethod.POST)
+    //@GetMapping("/api/c8vol")
     public ResponseEntity<String> c8vol(@RequestParam Map<String,String> payload) {
         log.debug(String.valueOf(payload));
         String username = (String) payload.get("userid");
@@ -70,14 +72,15 @@ public class MapRController {
         } catch (Exception e) {
             //e.printStackTrace();
             log.debug("Error Encountered: "+e.getMessage());
-            return ResponseEntity.ok("error encountered: "+e.getMessage());
+            return ResponseEntity.ok("{error:"+'"'+e.getMessage().replace('"', '-')+'"'+"}");
         }
     }
 
     //@RequestMapping(value = "/api/deletevol", method = RequestMethod.POST,consumes="application/json")
     //public ResponseEntity<String> deletevol(@RequestBody Map<String, Object> payload) throws Exception {
 
-    @GetMapping("/api/deletevol")
+    //@GetMapping("/api/deletevol")
+    @RequestMapping(value = "/api/deletevol",method = RequestMethod.POST)
     public ResponseEntity<String> deletevol(@RequestParam Map<String,String> payload) {
         log.debug(String.valueOf(payload));
         String username = (String) payload.get("userid");
@@ -99,12 +102,13 @@ public class MapRController {
         } catch (Exception e) {
             //e.printStackTrace();
             log.debug("Error Encountered: "+e.getMessage());
-            return ResponseEntity.ok("error encountered: "+e.getMessage());
+            return ResponseEntity.ok("{error:"+'"'+e.getMessage().replace('"', '-')+'"'+"}");
         }
     }
     //@RequestMapping(value = "/api/volinfo", method = RequestMethod.POST,consumes="application/json")
     //public ResponseEntity<String> volinfo(@RequestBody Map<String, Object> payload) throws Exception {
-    @GetMapping("/api/volinfo")
+    //@GetMapping("/api/volinfo")
+    @RequestMapping(value = "/api/volinfo",method = RequestMethod.POST)
     public ResponseEntity<String> volinfo(@RequestParam Map<String,String> payload) {
         log.debug(String.valueOf(payload));
         String username = (String) payload.get("userid");
@@ -125,7 +129,7 @@ public class MapRController {
         } catch (Exception e) {
             //e.printStackTrace();
             log.debug("Error Encountered: "+e.getMessage());
-            return ResponseEntity.ok("error encountered: "+e.getMessage());
+            return ResponseEntity.ok("{error:"+'"'+e.getMessage().replace('"', '-')+'"'+"}");
         }
     }
 
@@ -149,7 +153,7 @@ public class MapRController {
             return ResponseEntity.ok(responseString);
         } catch (Exception e) {
             log.debug("Error Encountered: "+e.getMessage());
-            return ResponseEntity.ok("error encountered: "+e.getMessage());
+            return ResponseEntity.ok("{error:"+'"'+e.getMessage().replace('"', '-')+'"'+"}");
         }
     }
 
