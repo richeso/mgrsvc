@@ -132,6 +132,39 @@ public class MapRController {
             return ResponseEntity.ok("{error:"+'"'+e.getMessage().replace('"', '-')+'"'+"}");
         }
     }
+    //@RequestMapping(value = "/api/volinfo", method = RequestMethod.POST,consumes="application/json")
+    //public ResponseEntity<String> volinfo(@RequestBody Map<String, Object> payload) throws Exception {
+    //@GetMapping("/api/mapr")
+    @RequestMapping(value = "/api/mapr",method = RequestMethod.POST)
+    public ResponseEntity<String> mapr(@RequestParam Map<String,String> payload) {
+        log.debug(String.valueOf(payload));
+        String username = (String) payload.get("userid");
+        String password = (String) payload.get("password");
+        String uri = (String) payload.get("uri");
+        try {
+            HttpHeaders headers = createAuthHeader(username, password);
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+            HttpEntity request = new HttpEntity(headers);
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost+uri);
+            payload.forEach((k,v) -> {
+                if (k.equals("userid") || k.equals("password") || k.equals("uri"));
+                else {
+                    log.debug("Request Parm key: " + k + ", Request Parm value: " + v);
+                    builder.queryParam(k, v);
+                }
+            });
+            // make a request
+            ResponseEntity<Map> response = restTemplate.exchange(builder.toUriString(),
+                    HttpMethod.POST, request, Map.class);
+            ObjectMapper objectMapper = new ObjectMapper();
+            String responseString = objectMapper.writeValueAsString(response.getBody());
+            return ResponseEntity.ok(responseString);
+        } catch (Exception e) {
+            //e.printStackTrace();
+            log.debug("Error Encountered: "+e.getMessage());
+            return ResponseEntity.ok("{error:"+'"'+e.getMessage().replace('"', '-')+'"'+"}");
+        }
+    }
 
     @GetMapping("/api/pamauthenticate")
     public ResponseEntity<String> pamauthenticate(@RequestParam Map<String,String> payload) {

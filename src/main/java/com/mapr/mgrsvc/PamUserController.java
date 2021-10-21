@@ -2,9 +2,12 @@ package com.mapr.mgrsvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 /*
 curl -H "Accept: application/json" -H "Content-type: application/json" \
@@ -29,6 +32,10 @@ Source: https://github.com/arcenik/docker-authfromhost/blob/63df5e63fcb92cd5fa26
  */
 @RestController
 public class PamUserController {
+
+
+    private static final Logger log = LoggerFactory.getLogger(PamUserController.class);
+
     @RequestMapping(value = "/api/pamuser",method = RequestMethod.POST,consumes="application/json")
     public ResponseEntity<String> process(@RequestBody Map<String, Object> payload) throws Exception {
         System.out.println(payload);
@@ -52,7 +59,17 @@ public class PamUserController {
             String userDataString = objectMapper.writeValueAsString(userData);
             return ResponseEntity.ok(userDataString);
         } catch (Exception e) {
-            return ResponseEntity.ok("error encountered: "+e.getMessage());
+            String responseString = e.getMessage();
+            System.out.println("Authentication Failure Response String: "+ responseString);
+            log.debug("Response from PamAuthentication: "+responseString);
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String,String> response = new HashMap<String,String>();
+            try {
+                response.put("Error", responseString);
+                return ResponseEntity.ok(objectMapper.writeValueAsString(response));
+            } catch (Exception ex) {
+                return ResponseEntity.ok("Error:"+ex.getMessage());
+            }
         }
     }
 
