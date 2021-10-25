@@ -63,7 +63,7 @@ public class MapRController {
                     .queryParam("path", volumePath);
 
             // make a request
-            ResponseEntity<Map> response = restTemplate.exchange(builder.toUriString(),
+            ResponseEntity<Map> response = restTemplate.exchange(builder.build().toUri(),
                     HttpMethod.POST, request, Map.class);
 
             ObjectMapper objectMapper = new ObjectMapper();
@@ -93,7 +93,7 @@ public class MapRController {
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost+URI_VOLUME_REMOVE)
                     .queryParam("name", volume);
             // make a request
-            ResponseEntity<Map> response = restTemplate.exchange(builder.toUriString(),
+            ResponseEntity<Map> response = restTemplate.exchange(builder.build().toUri(),
                     HttpMethod.POST, request, Map.class);
 
             ObjectMapper objectMapper = new ObjectMapper();
@@ -121,7 +121,7 @@ public class MapRController {
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost+URI_VOLUME_INFO)
                     .queryParam("name", volume);
             // make a request
-            ResponseEntity<Map> response = restTemplate.exchange(builder.toUriString(),
+            ResponseEntity<Map> response = restTemplate.exchange(builder.build().toUri(),
                     HttpMethod.POST, request, Map.class);
             ObjectMapper objectMapper = new ObjectMapper();
             String responseString = objectMapper.writeValueAsString(response.getBody());
@@ -154,7 +154,7 @@ public class MapRController {
                 }
             });
             // make a request
-            ResponseEntity<Map> response = restTemplate.exchange(builder.toUriString(),
+            ResponseEntity<Map> response = restTemplate.exchange(builder.build().toUri(),
                     HttpMethod.POST, request, Map.class);
             ObjectMapper objectMapper = new ObjectMapper();
             String responseString = objectMapper.writeValueAsString(response.getBody());
