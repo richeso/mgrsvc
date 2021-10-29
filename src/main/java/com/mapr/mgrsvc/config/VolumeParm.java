@@ -20,10 +20,8 @@ public class VolumeParm {
         }
         public String getParmValue(String parmkey, String user) {
             String value = parmMap.get(parmkey);
-            if (value.equals("$user"))
-                return user;
-            else
-                return value;
+            String replacement = value.replaceAll("@user", user);
+            return replacement;
         }
 
 

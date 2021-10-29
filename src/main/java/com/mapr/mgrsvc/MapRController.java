@@ -39,10 +39,10 @@ public class MapRController {
     @Value("${local.host.baseurl}")
     private String localhost;
 
-    @Value("${api.host.user")
+    @Value("${api.host.user}")
     private String apiUser;
 
-    @Value("${api.host.passwd")
+    @Value("${api.host.passwd}")
     private String apiPasswd;
 
     //@RequestMapping(value = "/api/c8vol", method = RequestMethod.POST,consumes="application/json")
@@ -231,9 +231,9 @@ public class MapRController {
         // override parameters if necessary
         String useUserid = userid;
         String usePassword = password;
-        if (override && apiUser != null && !apiUser.equals("") ) {
+        if (override && apiUser != null && !apiUser.equals("") & apiPasswd != null && !apiPasswd.equals("") ) {
             useUserid = apiUser;
-            usePassword = usePassword;
+            usePassword = apiPasswd;
         }
         String authStr = useUserid+":"+usePassword;
         String base64Creds = Base64.getEncoder().encodeToString(authStr.getBytes());
