@@ -1,6 +1,7 @@
 package com.mapr.mgrsvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mapr.mgrsvc.config.VolumeParm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,9 @@ public class MapRController {
     @Autowired
     RestTemplate restTemplate;
 
+    @Autowired
+    VolumeParm volumeParm;
+
     @Value("${api.host.baseurl}")
     private String apiHost;
 
@@ -35,6 +39,12 @@ public class MapRController {
     @Value("${local.host.baseurl}")
     private String localhost;
 
+    @Value("${api.host.user")
+    private String apiUser;
+
+    @Value("${api.host.passwd")
+    private String apiPasswd;
+
     //@RequestMapping(value = "/api/c8vol", method = RequestMethod.POST,consumes="application/json")
     //public ResponseEntity<String> c8vol(@RequestBody Map<String, Object> payload) throws Exception {
 
@@ -42,7 +52,7 @@ public class MapRController {
     //@GetMapping("/api/c8vol")
     public ResponseEntity<String> c8vol(@RequestParam Map<String,String> payload) {
         log.debug(String.valueOf(payload));
-        String username = (String) payload.get("userid");
+        String userid = (String) payload.get("userid");
         String password = (String) payload.get("password");
         String volume = (String) payload.get("volume");
         String volumePath = (String) payload.get("path");
@@ -55,13 +65,25 @@ public class MapRController {
             //params.put("path", path);
             // create request
             // HttpEntity request = new HttpEntity(params, headers);
-            HttpHeaders headers = createAuthHeader(username, password);
+            // Ensure user is authenticated
+            Map<String,Object> userData = PamUser.getUserData(userid,password);
+            System.out.println("User Authenticated via PAM: "+userData.toString());
+
+            HttpHeaders headers = createAuthHeader(userid, password);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             HttpEntity request = new HttpEntity(headers);
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost+URI_VOLUME_CREATE)
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost + URI_VOLUME_CREATE)
                     .queryParam("name", volume)
                     .queryParam("path", volumePath);
+            // add default parameters
+            // using for-each loop for iteration over Map.entrySet()
 
+            for (Map.Entry<String, String> entry : volumeParm.getParm().entrySet()) {
+                String key = entry.getKey();
+                String value = volumeParm.getParmValue(key,userid);
+                System.out.println("Key = " + key + ", Value = " + value);
+                builder.queryParam(key,value);
+            }
             // make a request
             ResponseEntity<Map> response = restTemplate.exchange(builder.build().toUri(),
                     HttpMethod.POST, request, Map.class);
@@ -83,11 +105,15 @@ public class MapRController {
     @RequestMapping(value = "/api/deletevol",method = RequestMethod.POST)
     public ResponseEntity<String> deletevol(@RequestParam Map<String,String> payload) {
         log.debug(String.valueOf(payload));
-        String username = (String) payload.get("userid");
+        String userid = (String) payload.get("userid");
         String password = (String) payload.get("password");
         String volume = (String) payload.get("volume");
         try {
-            HttpHeaders headers = createAuthHeader(username, password);
+
+            Map<String,Object> userData = PamUser.getUserData(userid,password);
+            System.out.println("User Authenticated via PAM: "+userData.toString());
+
+            HttpHeaders headers = createAuthHeader(userid, password);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             HttpEntity request = new HttpEntity(headers);
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost+URI_VOLUME_REMOVE)
@@ -111,11 +137,14 @@ public class MapRController {
     @RequestMapping(value = "/api/volinfo",method = RequestMethod.POST)
     public ResponseEntity<String> volinfo(@RequestParam Map<String,String> payload) {
         log.debug(String.valueOf(payload));
-        String username = (String) payload.get("userid");
+        String userid = (String) payload.get("userid");
         String password = (String) payload.get("password");
         String volume = (String) payload.get("volume");
         try {
-            HttpHeaders headers = createAuthHeader(username, password);
+
+            Map<String,Object> userData = PamUser.getUserData(userid,password);
+            System.out.println("User Authenticated via PAM: "+userData.toString());
+            HttpHeaders headers = createAuthHeader(userid, password);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             HttpEntity request = new HttpEntity(headers);
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost+URI_VOLUME_INFO)
@@ -138,11 +167,14 @@ public class MapRController {
     @RequestMapping(value = "/api/mapr",method = RequestMethod.POST)
     public ResponseEntity<String> mapr(@RequestParam Map<String,String> payload) {
         log.debug(String.valueOf(payload));
-        String username = (String) payload.get("userid");
+        String userid = (String) payload.get("userid");
         String password = (String) payload.get("password");
         String uri = (String) payload.get("uri");
         try {
-            HttpHeaders headers = createAuthHeader(username, password);
+
+            Map<String,Object> userData = PamUser.getUserData(userid,password);
+            System.out.println("User Authenticated via PAM: "+userData.toString());
+            HttpHeaders headers = createAuthHeader(userid, password);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             HttpEntity request = new HttpEntity(headers);
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost+uri);
@@ -172,7 +204,7 @@ public class MapRController {
         String userid = (String) payload.get("userid");
         String password = (String) payload.get("password");
         try {
-            HttpHeaders headers = createAuthHeader(userid, password);
+            HttpHeaders headers = createAuthHeader(userid, password, false);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             HttpEntity request = new HttpEntity(headers);
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(localhost + ":" + serverPort + "/api/paminfo")
@@ -190,9 +222,20 @@ public class MapRController {
         }
     }
 
-    private HttpHeaders createAuthHeader(String username, String password) {
+    private HttpHeaders createAuthHeader(String userid, String password) {
+        return createAuthHeader(userid,password,true);
+    }
+
+    private HttpHeaders createAuthHeader(String userid, String password, boolean override) {
         // create auth credentials
-        String authStr = username+":"+password;
+        // override parameters if necessary
+        String useUserid = userid;
+        String usePassword = password;
+        if (override && apiUser != null && !apiUser.equals("") ) {
+            useUserid = apiUser;
+            usePassword = usePassword;
+        }
+        String authStr = useUserid+":"+usePassword;
         String base64Creds = Base64.getEncoder().encodeToString(authStr.getBytes());
         // create headers
         HttpHeaders headers = new HttpHeaders();
