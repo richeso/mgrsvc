@@ -11,10 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.Base64;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 
 @RestController
@@ -29,6 +26,9 @@ public class MapRController {
 
     @Autowired
     VolumeParm volumeParm;
+
+    @Value("${mapr.cluster.name}")
+    private String clusterName;
 
     @Value("${api.host.baseurl}")
     private String apiHost;
@@ -48,9 +48,9 @@ public class MapRController {
     //@RequestMapping(value = "/api/c8vol", method = RequestMethod.POST,consumes="application/json")
     //public ResponseEntity<String> c8vol(@RequestBody Map<String, Object> payload) throws Exception {
 
-    @RequestMapping(value = "/api/c8vol",method = RequestMethod.POST)
+    @RequestMapping(value = "/api/c8vol", method = RequestMethod.POST)
     //@GetMapping("/api/c8vol")
-    public ResponseEntity<String> c8vol(@RequestParam Map<String,String> payload) {
+    public ResponseEntity<String> c8vol(@RequestParam Map<String, String> payload) {
         log.debug(String.valueOf(payload));
         String userid = (String) payload.get("userid");
         String password = (String) payload.get("password");
@@ -66,8 +66,8 @@ public class MapRController {
             // create request
             // HttpEntity request = new HttpEntity(params, headers);
             // Ensure user is authenticated
-            Map<String,Object> userData = PamUser.getUserData(userid,password);
-            System.out.println("User Authenticated via PAM: "+userData.toString());
+            Map<String, Object> userData = PamUser.getUserData(userid, password);
+            System.out.println("User Authenticated via PAM: " + userData.toString());
 
             HttpHeaders headers = createAuthHeader(userid, password);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
@@ -80,9 +80,13 @@ public class MapRController {
 
             for (Map.Entry<String, String> entry : volumeParm.getParm().entrySet()) {
                 String key = entry.getKey();
-                String value = volumeParm.getParmValue(key,userid);
+                String value = volumeParm.getParmValue(key, userid);
                 System.out.println("Key = " + key + ", Value = " + value);
-                builder.queryParam(key,value);
+                if (key.equals("dare") && value.equals("true")) {
+                    if (!isClusterDareEnabled(userid, password))
+                        value = "false";
+                }
+                builder.queryParam(key, value);
             }
             // make a request
             ResponseEntity<Map> response = restTemplate.exchange(builder.build().toUri(),
@@ -93,8 +97,8 @@ public class MapRController {
             return ResponseEntity.ok(responseString);
         } catch (Exception e) {
             //e.printStackTrace();
-            log.debug("Error Encountered: "+e.getMessage());
-            return ResponseEntity.ok("{error:"+'"'+e.getMessage().replace('"', '-')+'"'+"}");
+            log.debug("Error Encountered: " + e.getMessage());
+            return ResponseEntity.ok("{error:" + '"' + e.getMessage().replace('"', '-') + '"' + "}");
         }
     }
 
@@ -102,21 +106,21 @@ public class MapRController {
     //public ResponseEntity<String> deletevol(@RequestBody Map<String, Object> payload) throws Exception {
 
     //@GetMapping("/api/deletevol")
-    @RequestMapping(value = "/api/deletevol",method = RequestMethod.POST)
-    public ResponseEntity<String> deletevol(@RequestParam Map<String,String> payload) {
+    @RequestMapping(value = "/api/deletevol", method = RequestMethod.POST)
+    public ResponseEntity<String> deletevol(@RequestParam Map<String, String> payload) {
         log.debug(String.valueOf(payload));
         String userid = (String) payload.get("userid");
         String password = (String) payload.get("password");
         String volume = (String) payload.get("volume");
         try {
 
-            Map<String,Object> userData = PamUser.getUserData(userid,password);
-            System.out.println("User Authenticated via PAM: "+userData.toString());
+            Map<String, Object> userData = PamUser.getUserData(userid, password);
+            System.out.println("User Authenticated via PAM: " + userData.toString());
 
             HttpHeaders headers = createAuthHeader(userid, password);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             HttpEntity request = new HttpEntity(headers);
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost+URI_VOLUME_REMOVE)
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost + URI_VOLUME_REMOVE)
                     .queryParam("name", volume);
             // make a request
             ResponseEntity<Map> response = restTemplate.exchange(builder.build().toUri(),
@@ -127,27 +131,28 @@ public class MapRController {
             return ResponseEntity.ok(responseString);
         } catch (Exception e) {
             //e.printStackTrace();
-            log.debug("Error Encountered: "+e.getMessage());
-            return ResponseEntity.ok("{error:"+'"'+e.getMessage().replace('"', '-')+'"'+"}");
+            log.debug("Error Encountered: " + e.getMessage());
+            return ResponseEntity.ok("{error:" + '"' + e.getMessage().replace('"', '-') + '"' + "}");
         }
     }
+
     //@RequestMapping(value = "/api/volinfo", method = RequestMethod.POST,consumes="application/json")
     //public ResponseEntity<String> volinfo(@RequestBody Map<String, Object> payload) throws Exception {
     //@GetMapping("/api/volinfo")
-    @RequestMapping(value = "/api/volinfo",method = RequestMethod.POST)
-    public ResponseEntity<String> volinfo(@RequestParam Map<String,String> payload) {
+    @RequestMapping(value = "/api/volinfo", method = RequestMethod.POST)
+    public ResponseEntity<String> volinfo(@RequestParam Map<String, String> payload) {
         log.debug(String.valueOf(payload));
         String userid = (String) payload.get("userid");
         String password = (String) payload.get("password");
         String volume = (String) payload.get("volume");
         try {
 
-            Map<String,Object> userData = PamUser.getUserData(userid,password);
-            System.out.println("User Authenticated via PAM: "+userData.toString());
+            Map<String, Object> userData = PamUser.getUserData(userid, password);
+            System.out.println("User Authenticated via PAM: " + userData.toString());
             HttpHeaders headers = createAuthHeader(userid, password);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             HttpEntity request = new HttpEntity(headers);
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost+URI_VOLUME_INFO)
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost + URI_VOLUME_INFO)
                     .queryParam("name", volume);
             // make a request
             ResponseEntity<Map> response = restTemplate.exchange(builder.build().toUri(),
@@ -157,29 +162,30 @@ public class MapRController {
             return ResponseEntity.ok(responseString);
         } catch (Exception e) {
             //e.printStackTrace();
-            log.debug("Error Encountered: "+e.getMessage());
-            return ResponseEntity.ok("{error:"+'"'+e.getMessage().replace('"', '-')+'"'+"}");
+            log.debug("Error Encountered: " + e.getMessage());
+            return ResponseEntity.ok("{error:" + '"' + e.getMessage().replace('"', '-') + '"' + "}");
         }
     }
+
     //@RequestMapping(value = "/api/volinfo", method = RequestMethod.POST,consumes="application/json")
     //public ResponseEntity<String> volinfo(@RequestBody Map<String, Object> payload) throws Exception {
     //@GetMapping("/api/mapr")
-    @RequestMapping(value = "/api/mapr",method = RequestMethod.POST)
-    public ResponseEntity<String> mapr(@RequestParam Map<String,String> payload) {
+    @RequestMapping(value = "/api/mapr", method = RequestMethod.POST)
+    public ResponseEntity<String> mapr(@RequestParam Map<String, String> payload) {
         log.debug(String.valueOf(payload));
         String userid = (String) payload.get("userid");
         String password = (String) payload.get("password");
         String uri = (String) payload.get("uri");
         try {
 
-            Map<String,Object> userData = PamUser.getUserData(userid,password);
-            System.out.println("User Authenticated via PAM: "+userData.toString());
+            Map<String, Object> userData = PamUser.getUserData(userid, password);
+            System.out.println("User Authenticated via PAM: " + userData.toString());
             HttpHeaders headers = createAuthHeader(userid, password);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             HttpEntity request = new HttpEntity(headers);
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost+uri);
-            payload.forEach((k,v) -> {
-                if (k.equals("userid") || k.equals("password") || k.equals("uri"));
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost + uri);
+            payload.forEach((k, v) -> {
+                if (k.equals("userid") || k.equals("password") || k.equals("uri")) ;
                 else {
                     log.debug("Request Parm key: " + k + ", Request Parm value: " + v);
                     builder.queryParam(k, v);
@@ -193,13 +199,13 @@ public class MapRController {
             return ResponseEntity.ok(responseString);
         } catch (Exception e) {
             //e.printStackTrace();
-            log.debug("Error Encountered: "+e.getMessage());
-            return ResponseEntity.ok("{error:"+'"'+e.getMessage().replace('"', '-')+'"'+"}");
+            log.debug("Error Encountered: " + e.getMessage());
+            return ResponseEntity.ok("{error:" + '"' + e.getMessage().replace('"', '-') + '"' + "}");
         }
     }
 
     @GetMapping("/api/pamauthenticate")
-    public ResponseEntity<String> pamauthenticate(@RequestParam Map<String,String> payload) {
+    public ResponseEntity<String> pamauthenticate(@RequestParam Map<String, String> payload) {
         System.out.println(payload);
         String userid = (String) payload.get("userid");
         String password = (String) payload.get("password");
@@ -217,13 +223,13 @@ public class MapRController {
             String responseString = objectMapper.writeValueAsString(response.getBody());
             return ResponseEntity.ok(responseString);
         } catch (Exception e) {
-            log.debug("Error Encountered: "+e.getMessage());
-            return ResponseEntity.ok("{error:"+'"'+e.getMessage().replace('"', '-')+'"'+"}");
+            log.debug("Error Encountered: " + e.getMessage());
+            return ResponseEntity.ok("{error:" + '"' + e.getMessage().replace('"', '-') + '"' + "}");
         }
     }
 
     private HttpHeaders createAuthHeader(String userid, String password) {
-        return createAuthHeader(userid,password,true);
+        return createAuthHeader(userid, password, true);
     }
 
     private HttpHeaders createAuthHeader(String userid, String password, boolean override) {
@@ -231,11 +237,11 @@ public class MapRController {
         // override parameters if necessary
         String useUserid = userid;
         String usePassword = password;
-        if (override && apiUser != null && !apiUser.equals("") & apiPasswd != null && !apiPasswd.equals("") ) {
+        if (override && apiUser != null && !apiUser.equals("") & apiPasswd != null && !apiPasswd.equals("")) {
             useUserid = apiUser;
             usePassword = apiPasswd;
         }
-        String authStr = useUserid+":"+usePassword;
+        String authStr = useUserid + ":" + usePassword;
         String base64Creds = Base64.getEncoder().encodeToString(authStr.getBytes());
         // create headers
         HttpHeaders headers = new HttpHeaders();
@@ -243,4 +249,33 @@ public class MapRController {
         return headers;
     }
 
+    private boolean isClusterDareEnabled(String userid, String password) throws Exception {
+
+        boolean isDare = true;
+        try {
+            HttpHeaders headers = createAuthHeader(userid, password);
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+            HttpEntity request = new HttpEntity(headers);
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost + "/dashboard/info");
+            // make a request
+            ResponseEntity<Map> response = restTemplate.exchange(builder.build().toUri(),
+                    HttpMethod.POST, request, Map.class);
+            List<Object> clusterData = (List<Object>) response.getBody().get("data");
+            for (Object item : clusterData) {
+                Map<String, Object> clusterMap = (Map<String, Object>) item;
+                Map<String, Object> singleCluster = (Map<String, Object>) clusterMap.get("cluster");
+                String cname = (String) singleCluster.get("name");
+                if (cname.equals(clusterName)) {
+                    isDare = singleCluster.get("dare").toString().equals("true");
+                    break;
+                }
+            }
+            return isDare;
+        } catch (Exception e) {
+            //e.printStackTrace();
+            log.debug("Error Encountered querying dashboard info: " + e.getMessage());
+            throw (e);
+        }
+
+    }
 }
