@@ -38,14 +38,14 @@ public class PamUserController {
 
     @RequestMapping(value = "/api/pamuser",method = RequestMethod.POST,consumes="application/json")
     public ResponseEntity<String> process(@RequestBody Map<String, Object> payload) throws Exception {
-        System.out.println(payload);
+        //System.out.println(payload);
         String userid = (String) payload.get("userid");
         String password = (String) payload.get("password");
         return authenticate(userid, password);
     }
     @GetMapping("/api/paminfo")
     public ResponseEntity<String> paminfo(@RequestParam Map<String,String> payload) {
-        System.out.println(payload);
+        //System.out.println(payload);
         String userid = (String) payload.get("userid");
         String password = (String) payload.get("password");
         return authenticate(userid, password);
