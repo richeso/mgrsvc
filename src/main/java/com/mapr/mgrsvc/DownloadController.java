@@ -37,7 +37,7 @@ public class DownloadController {
         String password = (String) payload.get("password");
         FileSystemResource resource = new FileSystemResource("/tmp/tmpfile.csv");
         response.setContentType("application/zip");
-        response.setHeader("Content-Disposition", "attachment; filename=file.zip");
+        response.setHeader("Content-Disposition", "attachment; filename=tmpfile.zip");
         try (ZipOutputStream zippedOut = new ZipOutputStream(response.getOutputStream())) {
             // validate user first to ensure user is allowed
             Map userData = PamUser.getUserData(userid,password);
