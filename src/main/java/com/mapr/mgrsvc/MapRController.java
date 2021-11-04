@@ -46,6 +46,9 @@ public class MapRController {
     @Value("${api.host.passwd}")
     private String apiPasswd;
 
+    @Value("${dareCheck}")
+    private boolean dareCheck;
+
     //@RequestMapping(value = "/api/c8vol", method = RequestMethod.POST,consumes="application/json")
     //public ResponseEntity<String> c8vol(@RequestBody Map<String, Object> payload) throws Exception {
 
@@ -83,8 +86,9 @@ public class MapRController {
                 String key = entry.getKey();
                 String value = volumeParm.getParmValue(key, userid);
                 System.out.println("Key = " + key + ", Value = " + value);
-                if (key.equals("dare") && value.equals("true")) {
+                if (key.equals("dare") && value.equals("true") && dareCheck) {
                     if (!isClusterDareEnabled(userid, password))
+                        System.out.println("dare override to: false");
                         value = "false";
                 }
                 builder.queryParam(key, value);
