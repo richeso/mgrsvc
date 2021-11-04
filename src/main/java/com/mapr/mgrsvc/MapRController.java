@@ -20,6 +20,7 @@ public class MapRController {
     private final String URI_VOLUME_INFO = "/volume/info";
     private final String URI_VOLUME_CREATE = "/volume/create";
     private final String URI_VOLUME_REMOVE = "/volume/remove";
+    private final String dareIsFalse ='"'+"dare"+'"'+":false";
     private static final Logger log = LoggerFactory.getLogger(MapRController.class);
     @Autowired
     RestTemplate restTemplate;
@@ -260,6 +261,11 @@ public class MapRController {
             // make a request
             ResponseEntity<Map> response = restTemplate.exchange(builder.build().toUri(),
                     HttpMethod.POST, request, Map.class);
+            ObjectMapper objectMapper = new ObjectMapper();
+            String responseString = objectMapper.writeValueAsString(response.getBody());
+            if (responseString.indexOf(dareIsFalse) >=0)
+                isDare=false;
+            /*
             List<Object> clusterData = (List<Object>) response.getBody().get("data");
             for (Object item : clusterData) {
                 Map<String, Object> clusterMap = (Map<String, Object>) item;
@@ -270,6 +276,7 @@ public class MapRController {
                     break;
                 }
             }
+             */
             return isDare;
         } catch (Exception e) {
             //e.printStackTrace();
