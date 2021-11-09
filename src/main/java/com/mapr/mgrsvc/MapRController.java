@@ -60,6 +60,9 @@ public class MapRController {
         String password = (String) payload.get("password");
         String volume = (String) payload.get("volume");
         String volumePath = (String) payload.get("path");
+        String quota = (String) payload.get("quota");
+        String advisoryquota = (String) payload.get("advisoryquota");
+
         //http[s]://<host>:<port>/rest/volume/info?<parameters>
         //curl -k -X GET 'https://abc.sj.us:8443/rest/volume/info?name=test_vol' --user mapr:mapr
         //curl -k -X POST 'https://<hostname>:8443/rest/volume/create?name=<volName>&path=<mountPath>' --user mapr:mapr
@@ -79,6 +82,11 @@ public class MapRController {
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost + URI_VOLUME_CREATE)
                     .queryParam("name", volume)
                     .queryParam("path", volumePath);
+            if (quota != null && !quota.equals(""))
+                builder.queryParam("quota",quota);
+            if (advisoryquota != null && !advisoryquota.equals(""))
+                builder.queryParam("advisoryquota",advisoryquota);
+
             // add default parameters
             // using for-each loop for iteration over Map.entrySet()
 
