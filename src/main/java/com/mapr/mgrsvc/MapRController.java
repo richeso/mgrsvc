@@ -76,7 +76,7 @@ public class MapRController {
             Map<String, Object> userData = PamUser.getUserData(userid, password);
             System.out.println("User Authenticated via PAM: " + userData.toString());
 
-            HttpHeaders headers = createAuthHeader(userid, password);
+            HttpHeaders headers = createAuthHeader(apiUser, apiPasswd);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             HttpEntity request = new HttpEntity(headers);
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost + URI_VOLUME_CREATE)
@@ -130,7 +130,7 @@ public class MapRController {
             Map<String, Object> userData = PamUser.getUserData(userid, password);
             System.out.println("User Authenticated via PAM: " + userData.toString());
 
-            HttpHeaders headers = createAuthHeader(userid, password);
+            HttpHeaders headers = createAuthHeader(apiUser, apiPasswd);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             HttpEntity request = new HttpEntity(headers);
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost + URI_VOLUME_REMOVE)
@@ -159,10 +159,9 @@ public class MapRController {
         String password = (String) payload.get("password");
         String volume = (String) payload.get("volume");
         try {
-
             Map<String, Object> userData = PamUser.getUserData(userid, password);
             System.out.println("User Authenticated via PAM: " + userData.toString());
-            HttpHeaders headers = createAuthHeader(userid, password);
+            HttpHeaders headers = createAuthHeader(apiUser, apiPasswd);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             HttpEntity request = new HttpEntity(headers);
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost + URI_VOLUME_INFO)
@@ -190,20 +189,26 @@ public class MapRController {
         String password = (String) payload.get("password");
         String uri = (String) payload.get("uri");
         try {
-
             Map<String, Object> userData = PamUser.getUserData(userid, password);
             System.out.println("User Authenticated via PAM: " + userData.toString());
-            HttpHeaders headers = createAuthHeader(userid, password);
+            HttpHeaders headers = createAuthHeader(apiUser, apiPasswd);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             HttpEntity request = new HttpEntity(headers);
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost + uri);
             payload.forEach((k, v) -> {
+                v = v.replaceAll("%5B","[");
+                v = v.replaceAll("%5D","]");
+                v = v.replaceAll("%3D","=");
+                String keyval=("Request Parm key: " + k + ", Request Parm value: " + v);
+                log.debug(keyval);
+                System.out.println(keyval);
                 if (k.equals("userid") || k.equals("password") || k.equals("uri")) ;
                 else {
-                    log.debug("Request Parm key: " + k + ", Request Parm value: " + v);
                     builder.queryParam(k, v);
                 }
             });
+
+            System.out.println("uri="+builder.build().encode().toUriString());
             // make a request
             ResponseEntity<Map> response = restTemplate.exchange(builder.build().toUri(),
                     HttpMethod.POST, request, Map.class);
@@ -212,7 +217,9 @@ public class MapRController {
             return ResponseEntity.ok(responseString);
         } catch (Exception e) {
             //e.printStackTrace();
-            log.debug("Error Encountered: " + e.getMessage());
+            String errormsg = ("Error Encountered: " + e.getMessage());
+            System.out.println(errormsg);
+            log.debug(errormsg);
             return ResponseEntity.ok("{error:" + '"' + e.getMessage().replace('"', '-') + '"' + "}");
         }
     }
