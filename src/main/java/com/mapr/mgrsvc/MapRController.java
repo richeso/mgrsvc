@@ -191,7 +191,7 @@ public class MapRController {
         try {
             Map<String, Object> userData = PamUser.getUserData(userid, password);
             System.out.println("User Authenticated via PAM: " + userData.toString());
-            HttpHeaders headers = createAuthHeader(apiUser, apiPasswd);
+            HttpHeaders headers = createAuthHeader(userid, password);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             HttpEntity request = new HttpEntity(headers);
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost + uri);
