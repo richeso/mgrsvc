@@ -191,18 +191,19 @@ public class MapRController {
         try {
             Map<String, Object> userData = PamUser.getUserData(userid, password);
             System.out.println("User Authenticated via PAM: " + userData.toString());
-            HttpHeaders headers = createAuthHeader(userid, password);
+            HttpHeaders headers = createAuthHeader(apiUser, apiPasswd);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             HttpEntity request = new HttpEntity(headers);
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost + uri);
             payload.forEach((k, v) -> {
-                v = v.replaceAll("%5B","[");
-                v = v.replaceAll("%5D","]");
-                v = v.replaceAll("%3D","=");
                 String keyval=("Request Parm key: " + k + ", Request Parm value: " + v);
                 log.debug(keyval);
                 System.out.println(keyval);
                 if (k.equals("userid") || k.equals("password") || k.equals("uri")) ;
+                else
+                if (k.equals("filter")){
+                    builder.queryParam(k, "["+v+"]");
+                }
                 else {
                     builder.queryParam(k, v);
                 }
