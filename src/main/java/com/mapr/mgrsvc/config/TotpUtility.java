@@ -1,4 +1,4 @@
-package com.mapr.mgrsvc;
+package com.mapr.mgrsvc.config;
 
 import dev.samstevens.totp.code.CodeGenerator;
 import dev.samstevens.totp.code.DefaultCodeGenerator;
@@ -9,7 +9,9 @@ import dev.samstevens.totp.secret.SecretGenerator;
 import dev.samstevens.totp.time.SystemTimeProvider;
 import dev.samstevens.totp.time.TimeProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+@Component
 public class TotpUtility {
 
     private SecretGenerator secretGenerator = new DefaultSecretGenerator(32);

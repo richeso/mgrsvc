@@ -1,6 +1,7 @@
 package com.mapr.mgrsvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mapr.mgrsvc.config.TotpUtility;
 import com.mapr.mgrsvc.config.VolumeParm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,9 @@ public class MapRController {
     @Autowired
     VolumeParm volumeParm;
 
+    @Autowired
+    TotpUtility totp;
+
     @Value("${mapr.cluster.name}")
     private String clusterName;
 
@@ -54,7 +58,7 @@ public class MapRController {
 
     @RequestMapping(value = "/api/c8vol", method = RequestMethod.POST)
     //@GetMapping("/api/c8vol")
-    public ResponseEntity<String> c8vol(@RequestParam Map<String, String> payload) {
+    public ResponseEntity<String> c8vol(@RequestParam Map<String, String> payload, @RequestHeader Map<String, String> inputHeaders) {
         log.debug(String.valueOf(payload));
         String userid = (String) payload.get("userid");
         String password = (String) payload.get("password");
@@ -75,7 +79,7 @@ public class MapRController {
             // Ensure user is authenticated
             Map<String, Object> userData = PamUser.getUserData(userid, password);
             System.out.println("User Authenticated via PAM: " + userData.toString());
-
+            validateToken(inputHeaders);
             HttpHeaders headers = createAuthHeader(apiUser, apiPasswd);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             HttpEntity request = new HttpEntity(headers);
@@ -120,7 +124,7 @@ public class MapRController {
 
     //@GetMapping("/api/deletevol")
     @RequestMapping(value = "/api/deletevol", method = RequestMethod.POST)
-    public ResponseEntity<String> deletevol(@RequestParam Map<String, String> payload) {
+    public ResponseEntity<String> deletevol(@RequestParam Map<String, String> payload, @RequestHeader Map<String, String> inputHeaders) {
         log.debug(String.valueOf(payload));
         String userid = (String) payload.get("userid");
         String password = (String) payload.get("password");
@@ -129,7 +133,7 @@ public class MapRController {
 
             Map<String, Object> userData = PamUser.getUserData(userid, password);
             System.out.println("User Authenticated via PAM: " + userData.toString());
-
+            validateToken(inputHeaders);
             HttpHeaders headers = createAuthHeader(apiUser, apiPasswd);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             HttpEntity request = new HttpEntity(headers);
@@ -153,7 +157,7 @@ public class MapRController {
     //public ResponseEntity<String> volinfo(@RequestBody Map<String, Object> payload) throws Exception {
     //@GetMapping("/api/volinfo")
     @RequestMapping(value = "/api/volinfo", method = RequestMethod.POST)
-    public ResponseEntity<String> volinfo(@RequestParam Map<String, String> payload) {
+    public ResponseEntity<String> volinfo(@RequestParam Map<String, String> payload, @RequestHeader Map<String, String> inputHeaders) {
         log.debug(String.valueOf(payload));
         String userid = (String) payload.get("userid");
         String password = (String) payload.get("password");
@@ -161,6 +165,7 @@ public class MapRController {
         try {
             Map<String, Object> userData = PamUser.getUserData(userid, password);
             System.out.println("User Authenticated via PAM: " + userData.toString());
+            validateToken(inputHeaders);
             HttpHeaders headers = createAuthHeader(apiUser, apiPasswd);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             HttpEntity request = new HttpEntity(headers);
@@ -183,7 +188,7 @@ public class MapRController {
     //public ResponseEntity<String> volinfo(@RequestBody Map<String, Object> payload) throws Exception {
     //@GetMapping("/api/mapr")
     @RequestMapping(value = "/api/mapr", method = RequestMethod.POST)
-    public ResponseEntity<String> mapr(@RequestParam Map<String, String> payload) {
+    public ResponseEntity<String> mapr(@RequestParam Map<String, String> payload, @RequestHeader Map<String, String> inputHeaders) {
         log.debug(String.valueOf(payload));
         String userid = (String) payload.get("userid");
         String password = (String) payload.get("password");
@@ -191,6 +196,7 @@ public class MapRController {
         try {
             Map<String, Object> userData = PamUser.getUserData(userid, password);
             System.out.println("User Authenticated via PAM: " + userData.toString());
+            validateToken(inputHeaders);
             HttpHeaders headers = createAuthHeader(apiUser, apiPasswd);
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             HttpEntity request = new HttpEntity(headers);
@@ -246,6 +252,14 @@ public class MapRController {
         } catch (Exception e) {
             log.debug("Error Encountered: " + e.getMessage());
             return ResponseEntity.ok("{error:" + '"' + e.getMessage().replace('"', '-') + '"' + "}");
+        }
+    }
+
+    private void validateToken(Map<String,String> inputHeaders) throws Exception {
+        String authtoken = (String) inputHeaders.get("authtoken");
+        if (authtoken != null && totp.isValid(authtoken));
+        else {
+            throw new Exception("Authentication Failure validating Security Token");
         }
     }
 
